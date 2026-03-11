@@ -1,5 +1,7 @@
 # Master validation test plan
 
+**Status:** ✅ Done (completed)
+
 This repo is Nativefier: a Node/TypeScript CLI plus an Electron app wrapper.
 
 ## Goal
