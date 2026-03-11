@@ -36,8 +36,10 @@ describe('Application launch', () => {
 
   const appMainJSPath = path.join(__dirname, '..', 'app', 'lib', 'main.js');
   const DEFAULT_CONFIG: NativefierOptions = {
-    targetUrl: 'https://npmjs.com',
+    targetUrl: 'https://example.com/',
   };
+  const INTERNAL_LINK_SELECTOR = '#internal-test-link';
+  const EXTERNAL_LINK_SELECTOR = '#external-test-link';
 
   const logFileDir = getTempDir('playwright');
 
@@ -130,6 +132,23 @@ describe('Application launch', () => {
     return window;
   };
 
+  const injectTestLinks = async (page: Page): Promise<void> => {
+    await page.evaluate(() => {
+      const internal = document.createElement('a');
+      internal.id = 'internal-test-link';
+      internal.href = '/internal-test';
+      internal.textContent = 'internal';
+
+      const external = document.createElement('a');
+      external.id = 'external-test-link';
+      external.href = 'https://www.iana.org/domains/example';
+      external.textContent = 'external';
+
+      document.body.appendChild(internal);
+      document.body.appendChild(external);
+    });
+  };
+
   beforeEach(() => {
     nukeInjects();
     nukeLogs(logFileDir);
@@ -148,7 +167,7 @@ describe('Application launch', () => {
     const mainWindow = (await spawnApp()) as Page;
     await mainWindow.waitForLoadState('domcontentloaded');
     expect(app.windows()).toHaveLength(1);
-    expect(await mainWindow.title()).toBe('npm');
+    expect(await mainWindow.title()).toBe('Example Domain');
   });
 
   test('can inject some CSS', async () => {
@@ -159,17 +178,18 @@ describe('Application launch', () => {
     );
     const mainWindow = (await spawnApp()) as Page;
     await mainWindow.waitForLoadState('domcontentloaded');
-    const headerStyle = await mainWindow.$eval('header', (el) =>
+    const bodyStyle = await mainWindow.$eval('body', (el) =>
       window.getComputedStyle(el),
     );
-    expect(headerStyle.backgroundColor).toBe(fuschia);
+    expect(bodyStyle.backgroundColor).toBe(fuschia);
 
-    await mainWindow.click('#nav-pricing-link');
+    await injectTestLinks(mainWindow);
+    await mainWindow.click(INTERNAL_LINK_SELECTOR);
     await mainWindow.waitForLoadState('domcontentloaded');
-    const headerStylePostNavigate = await mainWindow.$eval('header', (el) =>
+    const bodyStylePostNavigate = await mainWindow.$eval('body', (el) =>
       window.getComputedStyle(el),
     );
-    expect(headerStylePostNavigate.backgroundColor).toBe(fuschia);
+    expect(bodyStylePostNavigate.backgroundColor).toBe(fuschia);
   });
 
   test('can inject some JS', async () => {
@@ -196,7 +216,8 @@ describe('Application launch', () => {
   test('can open internal links', async () => {
     const mainWindow = (await spawnApp()) as Page;
     await mainWindow.waitForLoadState('domcontentloaded');
-    await mainWindow.click('#nav-pricing-link');
+    await injectTestLinks(mainWindow);
+    await mainWindow.click(INTERNAL_LINK_SELECTOR);
     await mainWindow.waitForLoadState('domcontentloaded');
     expect(app.windows()).toHaveLength(1);
   });
@@ -204,6 +225,7 @@ describe('Application launch', () => {
   test('tries to open external links', async () => {
     const mainWindow = (await spawnApp()) as Page;
     await mainWindow.waitForLoadState('domcontentloaded');
+    await injectTestLinks(mainWindow);
 
     // Install the mock first
     await app.evaluate(({ shell }: { shell: Shell }) => {
@@ -219,15 +241,13 @@ describe('Application launch', () => {
     });
 
     // Click, but don't await it - Playwright waits for stuff that does not happen when Electron does openExternal.
-    mainWindow
-      .click('#footer > div:nth-child(2) > ul > li:nth-child(2) > a')
-      .catch((err: unknown) => {
-        expect(err).toBeUndefined();
-      });
+    mainWindow.click(EXTERNAL_LINK_SELECTOR).catch((err: unknown) => {
+      expect(err).toBeUndefined();
+    });
 
     // Go pull out our value returned by our hacky global promise
     const openExternalUrl = await app.evaluate('process.openExternalPromise');
-    expect(openExternalUrl).not.toBe('https://www.npmjs.com/');
+    expect(openExternalUrl).toContain('iana.org/domains/example');
 
     expect(openExternalUrl).not.toBe(DEFAULT_CONFIG.targetUrl);
   });
@@ -275,9 +295,10 @@ describe('Application launch', () => {
   test.skip('keyboard shortcuts: back and forward', async () => {
     const mainWindow = (await spawnApp()) as Page;
     await mainWindow.waitForLoadState('domcontentloaded');
+    await injectTestLinks(mainWindow);
 
     await Promise.all([
-      mainWindow.click('#nav-pricing-link'),
+      mainWindow.click(INTERNAL_LINK_SELECTOR),
       mainWindow.waitForNavigation({ waitUntil: 'domcontentloaded' }),
     ]);
 
