@@ -3,10 +3,12 @@ name: ci
 on:
   push:
     branches:
-      - master
+      - main
+      - master # temporary during branch migration
   pull_request:
     branches:
-      - master
+      - main
+      - master # temporary during branch migration
 
 # - Bumping the *minimum* required Node version? You must bump:
 #   1. package.json -> engines.node
