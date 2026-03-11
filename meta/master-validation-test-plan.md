@@ -81,3 +81,9 @@ npm run test:manual
 
 - `.nvmrc` remains at Node 16 because the project still documents and CI-tests that as the minimum supported version.
 - `.node-version` is set to Node 20 so tools like `fnm` can auto-load the preferred day-to-day development version.
+
+## Current master validation state (local)
+
+- Forced TypeScript to `5.1.x` to satisfy ESLint.
+- Ran `npm i` instead of `npm ci` because the lockfile needed to be updated.
+- `npm run lint` works.
