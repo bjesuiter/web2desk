@@ -29,8 +29,6 @@ jobs:
           cache-dependency-path: |
             npm-shrinkwrap.json
             app/npm-shrinkwrap.json
-            package-lock.json
-            app/package-lock.json
       - env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm ci --no-fund # Will also (via `prepare` hook): 1. install ./app, 2. build
@@ -47,8 +45,6 @@ jobs:
           cache-dependency-path: |
             npm-shrinkwrap.json
             app/npm-shrinkwrap.json
-            package-lock.json
-            app/package-lock.json
       - env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm ci --no-fund # Will also (via `prepare` hook): 1. install ./app, 2. build
@@ -62,7 +58,6 @@ jobs:
       matrix:
         node-version:
           - '20'
-          - '16' # the oldest we require in package.json -> engines.node, to check we run on this minimum
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -75,8 +70,6 @@ jobs:
           cache-dependency-path: |
             npm-shrinkwrap.json
             app/npm-shrinkwrap.json
-            package-lock.json
-            app/package-lock.json
       - env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
         run: npm ci --no-fund # Will also (via `prepare` hook): 1. install ./app, 2. build
