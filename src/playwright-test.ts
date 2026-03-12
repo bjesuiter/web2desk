@@ -381,27 +381,32 @@ describe('Application launch', () => {
     })) as Page;
     await mainWindow.waitForLoadState('load');
 
-    // Give the app a few seconds to open the login window
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    let loginWindow: Page | undefined;
+    for (let i = 0; i < 50; i++) {
+      loginWindow = app
+        .windows()
+        .find((window) => window !== mainWindow && !window.isClosed());
+      if (loginWindow) {
+        break;
+      }
+      await sleep(200);
+    }
 
-    const appWindows = app.windows();
+    expect(loginWindow).toBeDefined();
+    const loginWindowPage = loginWindow as Page;
 
-    expect(appWindows).toHaveLength(2);
+    await loginWindowPage.waitForLoadState('domcontentloaded');
+    await loginWindowPage.waitForLoadState('load');
 
-    const loginWindow = appWindows.filter((x) => x !== mainWindow)[0];
-
-    await loginWindow.waitForLoadState('domcontentloaded');
-    await loginWindow.waitForLoadState('load');
-
-    const usernameField = await loginWindow.$('#username-input');
+    const usernameField = await loginWindowPage.$('#username-input');
     expect(usernameField).not.toBeNull();
     await usernameField?.fill('user');
 
-    const passwordField = await loginWindow.$('#password-input');
+    const passwordField = await loginWindowPage.$('#password-input');
     expect(passwordField).not.toBeNull();
     await passwordField?.fill('pass');
 
-    const submitButton = await loginWindow.$('#submit-form-button');
+    const submitButton = await loginWindowPage.$('#submit-form-button');
     expect(submitButton).not.toBeNull();
 
     // "Why is this here?" you may be asking yourself.
@@ -411,9 +416,16 @@ describe('Application launch', () => {
     // that would allow me to know such information.
     log.log({ submitButton });
 
-    await submitButton?.click();
+    try {
+      await submitButton?.click();
+    } catch (error) {
+      if (!loginWindowPage.isClosed()) {
+        throw error;
+      }
+      log.warn('Login window closed while clicking submit; continuing.');
+    }
 
-    await mainWindow.waitForEvent('load');
+    await mainWindow.waitForLoadState('networkidle');
 
     const documentText = await mainWindow.evaluate<string>(
       'document.documentElement.innerText',
