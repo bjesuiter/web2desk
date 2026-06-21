@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "off",
+    "suspicious": "off",
+    "pedantic": "off",
+    "perf": "off",
+    "style": "off",
+    "restriction": "off",
+    "nursery": "off"
+  },
+  "rules": {
+    "no-console": "error",
+    "typescript/no-confusing-non-null-assertion": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extraneous-class": "error",
+    "typescript/no-invalid-void-type": "error",
+    "typescript/prefer-ts-expect-error": "error",
+    "typescript/typedef": "error",
+    "typescript/unified-signatures": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/**",
+    "app/node_modules/**",
+    "lib/**",
+    "shared/lib/**",
+    "app/lib/**",
+    "app/dist/**",
+    "built-tests/**",
+    "coverage/**"
+  ],
+  "env": {
+    "builtin": true
+  }
+}

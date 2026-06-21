@@ -52,3 +52,37 @@ Baseline: `master` is currently validated and stable (HEAD `ec3a1c1`).
 
 - Green: `npm run lint`, `npm run test:noplaywright`, `npm run test:playwright` (Windows lane), and CI on `main`.
 - No phase merges without passing its CI gates.
+
+## Progress log
+
+### Completed
+
+- ✅ **Step 1 – Safety point**
+  - Tag created and pushed: `modernization-baseline-2026-03-11`
+- ✅ **Step 2 – Branch migration start (`master` ➜ `main`)**
+  - `main` branch created and set as default on GitHub.
+  - CI currently still includes temporary dual triggers (`main` + `master`).
+- ✅ **Step 3 – Node baseline + lockfile normalization**
+  - Node baseline moved to 20 (`.nvmrc` + `engines.node`).
+  - CI Node 16 matrix lane removed.
+  - Root `npm-shrinkwrap.json` restored; `npm ci` deterministic again.
+- ✅ **Step 4 – CI workflow modernization**
+  - Upgraded workflow actions (`checkout/setup-node` to `v4`, docker login action to `v3`).
+  - Updated cache dependency paths to current lockfiles.
+- ✅ **Flaky Playwright stabilization (post-step verification fix)**
+  - Hardened `basic auth without pre-providing` test window handling.
+  - CI run on `main` is green after fix.
+- 🔄 **Step 5 – ESLint ➜ Oxlint (transition started)**
+  - Added `oxlint` and committed root `.oxlintrc.json` with rule scope aligned to existing enforced ESLint checks.
+  - Updated npm scripts to run **both** linters (`lint:oxlint` + `lint:eslint`) for parity during migration.
+  - Added dedicated scripts (`lint:oxlint`, `lint:oxlint:fix`, `lint:eslint`, `lint:eslint:fix`) and kept `lint`/`lint:fix` as aggregate entry points.
+
+### Current status
+
+- Latest branch: `main`
+- CI status: ✅ passing on `main` (including Playwright lane)
+- Next planned step: **Finish Step 5 by validating parity in CI over time, then remove ESLint configs/dependencies and switch `lint` to Oxlint-only**
+
+### Follow-up noted
+
+- GitHub emitted warnings that JavaScript actions running on Node 20 will be deprecated in 2026; plan a later pass to move to newer action majors that support Node 24 runtime.
