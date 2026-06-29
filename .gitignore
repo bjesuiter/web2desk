@@ -1,6 +1,10 @@
 # OSX
 .DS_Store
 
+# Local environment files
+.env*
+!.env.schema
+
 # ignore compiled lib files
 lib*
 app/lib/*
